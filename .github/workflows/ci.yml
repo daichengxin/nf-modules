@@ -169,7 +169,7 @@ jobs:
                   # Note: Test data should be configured via params.test_data in the test workflow
                   nextflow run main.nf \
                       -c nextflow.config \
-                      -c ../../config/nextflow.config \
+                      -c ../../../config/nextflow.config \
                       --outdir "../../../test_results/${MODULE_PATH}" \
                       -with-docker \
                       -with-report "../../../test_results/${MODULE_PATH}/report.html" \
