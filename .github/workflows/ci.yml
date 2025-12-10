@@ -24,6 +24,8 @@ env:
     NXF_ANSI_LOG: false
     # renovate: datasource=github-releases depName=nextflow/nextflow versioning=semver
     NXF_VER: "25.04.8"
+    # renovate: datasource=github-releases depName=askimed/nf-test versioning=semver
+    NFT_VER: "0.9.3"
 
 jobs:
     prettier:
@@ -64,15 +66,15 @@ jobs:
         name: Detect changed modules
         runs-on: ubuntu-latest
         outputs:
-            paths: ${{ steps.list.outputs.paths }}
             modules: ${{ steps.components.outputs.modules }}
+            test_files: ${{ steps.list.outputs.test_files }}
         steps:
             - name: Check out code
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
 
-            - name: Detect changed test paths
+            - name: Detect changed test files
               id: list
               run: |
                   # Get base commit for comparison
@@ -90,58 +92,57 @@ jobs:
                   echo "Changed files:"
                   echo "$CHANGED_FILES"
 
-                  # Extract test paths for changed modules
-                  CHANGED_PATHS=()
+                  # Extract test files for changed modules
+                  TEST_FILES=()
 
                   while IFS= read -r file; do
                       # Check if file is in modules directory
                       if [[ "$file" =~ ^modules/([^/]+)/([^/]+)/ ]]; then
                           org="${BASH_REMATCH[1]}"
                           module="${BASH_REMATCH[2]}"
-                          test_path="tests/modules/${org}/${module}"
+                          test_file="modules/${org}/${module}/tests/main.nf.test"
 
                           # Check if test exists
-                          if [ -d "$test_path" ]; then
-                              if [[ ! " ${CHANGED_PATHS[@]} " =~ " ${test_path} " ]]; then
-                                  CHANGED_PATHS+=("$test_path")
+                          if [ -f "$test_file" ]; then
+                              if [[ ! " ${TEST_FILES[@]} " =~ " ${test_file} " ]]; then
+                                  TEST_FILES+=("$test_file")
                               fi
                           fi
                       fi
 
                       # Also check if test files themselves changed
-                      if [[ "$file" =~ ^tests/modules/([^/]+)/([^/]+)/ ]]; then
-                          test_path="$file"
-                          # Remove the main.nf or nextflow.config to get the directory
-                          test_path="${test_path%/*}"
-                          if [[ ! " ${CHANGED_PATHS[@]} " =~ " ${test_path} " ]]; then
-                              CHANGED_PATHS+=("$test_path")
+                      if [[ "$file" =~ ^modules/([^/]+)/([^/]+)/tests/main\.nf\.test$ ]]; then
+                          if [[ ! " ${TEST_FILES[@]} " =~ " ${file} " ]]; then
+                              TEST_FILES+=("$file")
                           fi
                       fi
                   done <<< "$CHANGED_FILES"
 
                   # Convert to JSON array
-                  if [ ${#CHANGED_PATHS[@]} -eq 0 ]; then
-                      echo 'paths=[]' >> $GITHUB_OUTPUT
+                  if [ ${#TEST_FILES[@]} -eq 0 ]; then
+                      echo 'test_files=[]' >> $GITHUB_OUTPUT
                       echo "No changed modules with tests found."
                   else
-                      PATHS_JSON=$(printf '%s\n' "${CHANGED_PATHS[@]}" | jq -R . | jq -s .)
+                      TEST_FILES_JSON=$(printf '%s\n' "${TEST_FILES[@]}" | jq -R . | jq -s .)
                       {
-                          echo "paths<<EOF"
-                          echo "$PATHS_JSON"
+                          echo "test_files<<EOF"
+                          echo "$TEST_FILES_JSON"
                           echo "EOF"
                       } >> $GITHUB_OUTPUT
-                      echo "Changed test paths:"
-                      printf '%s\n' "${CHANGED_PATHS[@]}"
+                      echo "Changed test files:"
+                      printf '%s\n' "${TEST_FILES[@]}"
                   fi
 
-            - name: Separate modules
+            - name: Extract module names
               id: components
               run: |
-                  PATHS='${{ steps.list.outputs.paths }}'
-                  if [ "$PATHS" == "[]" ]; then
+                  TEST_FILES='${{ steps.list.outputs.test_files }}'
+                  if [ "$TEST_FILES" == "[]" ]; then
                       echo 'modules=[]' >> $GITHUB_OUTPUT
                   else
-                      MODULES=$(echo "$PATHS" | jq -c 'map(gsub("tests/modules/"; ""))')
+                      # Extract module paths from test file paths
+                      # modules/bigbio/thermorawfileparser/tests/main.nf.test -> bigbio/thermorawfileparser
+                      MODULES=$(echo "$TEST_FILES" | jq -c 'map(gsub("modules/"; "") | gsub("/tests/main.nf.test"; ""))')
                       {
                           echo "modules<<EOF"
                           echo "$MODULES"
@@ -151,7 +152,7 @@ jobs:
 
             - name: Debug
               run: |
-                  echo "Paths: ${{ steps.list.outputs.paths }}"
+                  echo "Test files: ${{ steps.list.outputs.test_files }}"
                   echo "Modules: ${{ steps.components.outputs.modules }}"
 
     test-modules:
@@ -173,35 +174,30 @@ jobs:
               with:
                   version: ${{ env.NXF_VER }}
 
-            - name: Run test for ${{ matrix.module }}
+            - name: Install nf-test
+              run: |
+                  wget -qO- https://code.askimed.com/install/nf-test | bash -s ${{ env.NFT_VER }}
+                  sudo mv nf-test /usr/local/bin/
+
+            - name: Run nf-test for ${{ matrix.module }}
               run: |
                   MODULE_PATH="${{ matrix.module }}"
-                  TEST_DIR="tests/modules/${MODULE_PATH}"
+                  TEST_FILE="modules/${MODULE_PATH}/tests/main.nf.test"
 
                   echo "Testing module: ${MODULE_PATH}"
-                  echo "Test directory: ${TEST_DIR}"
+                  echo "Test file: ${TEST_FILE}"
                   echo "Profile: ${{ matrix.profile }}"
 
-                  if [ ! -d "${TEST_DIR}" ]; then
-                      echo "Error: Test directory ${TEST_DIR} not found"
+                  if [ ! -f "${TEST_FILE}" ]; then
+                      echo "Error: Test file ${TEST_FILE} not found"
                       exit 1
                   fi
 
-                  cd "${TEST_DIR}"
-
-                  # Create output directory
-                  mkdir -p "../../../test_results/${MODULE_PATH}"
-
-                  # Run test workflow
-                  # Docker is already enabled in tests/config/nextflow.config (docker.enabled = true)
-                  # Nextflow will automatically detect and run the workflow defined in main.nf
-                  nextflow run main.nf \
-                      -c nextflow.config \
-                      -c ../../../config/nextflow.config \
-                      --outdir "../../../test_results/${MODULE_PATH}" \
-                      -with-report "../../../test_results/${MODULE_PATH}/report.html" \
-                      -with-trace "../../../test_results/${MODULE_PATH}/trace.txt" \
-                      || exit 1
+                  # Run nf-test with Docker profile
+                  nf-test test \
+                      --profile ${{ matrix.profile }} \
+                      --tap test_results/${MODULE_PATH}/test.tap \
+                      ${TEST_FILE}
 
             - name: Upload test results
               if: always()
