@@ -7,7 +7,7 @@ keywords:
 tools:
     - thermorawfileparser:
           description: |
-              It takes a thermo RAW file as input and outputs indexed mzML
+              ThermoRawFileParser converts Thermo RAW files to open standard formats like mzML, producing indexed output files.
           homepage: https://github.com/compomics/ThermoRawFileParser
           documentation: https://github.com/compomics/ThermoRawFileParser
 input:
