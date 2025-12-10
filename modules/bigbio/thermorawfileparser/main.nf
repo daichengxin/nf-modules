@@ -35,24 +35,15 @@ process THERMORAWFILEPARSER {
     path "*.log",   emit: log
 
     script:
+    def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "${meta.mzml_id}"
+
     """
     ThermoRawFileParser.sh -i=${rawfile} -f=2 -o=./ 2>&1 | tee ${rawfile.baseName}_conversion.log
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         ThermoRawFileParser: \$(ThermoRawFileParser.sh --version)
-    END_VERSIONS
-    """
-
-    stub:
-    def prefix = task.ext.prefix ?: "${meta.mzml_id}"
-    """
-    touch ${prefix}.mzML
-    touch ${prefix}_conversion.log
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        ThermoRawFileParser: \$(echo "1.4.5")
     END_VERSIONS
     """
 }
