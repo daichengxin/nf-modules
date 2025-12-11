@@ -9,6 +9,7 @@
 A repository for hosting [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) module files containing tool-specific process definitions and their associated documentation, specifically designed for BigBio workflows.
 
 > **Note:** This repository complements [nf-core/modules](https://github.com/nf-core/modules) and does not replace it. BigBio workflows follow a module resolution strategy:
+>
 > 1. **First priority:** Use nf-core modules if available
 > 2. **Second priority:** Use BigBio shared modules (this repository) if available
 > 3. **Third priority:** Use local modules in the workflow repository
@@ -154,6 +155,7 @@ BigBio workflows follow a hierarchical module resolution strategy to maximize co
 3. **Local modules** (`modules/local/`): Use workflow-specific modules only when neither nf-core nor BigBio modules are available. These should be considered for promotion to BigBio modules if they become useful for multiple workflows.
 
 This strategy ensures:
+
 - Maximum code reuse across workflows
 - Consistent module quality and standards
 - Easy maintenance and updates
@@ -178,6 +180,7 @@ nf-modules/
 ## Help
 
 For further information or help, please:
+
 - Open an issue on [GitHub](https://github.com/bigbio/nf-modules/issues)
 - Check the [nf-core documentation](https://nf-co.re/developers/modules) for module development guidelines
 - Join the BigBio community discussions
