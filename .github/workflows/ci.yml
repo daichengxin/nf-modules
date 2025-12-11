@@ -122,7 +122,6 @@ jobs:
                   if [ ${#TEST_FILES[@]} -eq 0 ]; then
                       echo 'test_files=[]' >> $GITHUB_OUTPUT
                       echo "No changed modules with tests found."
-                      echo "::notice::No modules with tests were changed. Test jobs will be skipped."
                   else
                       TEST_FILES_JSON=$(printf '%s\n' "${TEST_FILES[@]}" | jq -R . | jq -s .)
                       {
@@ -138,12 +137,8 @@ jobs:
               id: components
               run: |
                   TEST_FILES='${{ steps.list.outputs.test_files }}'
-                  echo "DEBUG: TEST_FILES value: $TEST_FILES"
-                  echo "DEBUG: TEST_FILES length: ${#TEST_FILES}"
-
-                  if [ "$TEST_FILES" == "[]" ] || [ -z "$TEST_FILES" ]; then
+                  if [ "$TEST_FILES" == "[]" ]; then
                       echo 'modules=[]' >> $GITHUB_OUTPUT
-                      echo "DEBUG: No modules detected, setting modules=[]"
                   else
                       # Extract module paths from test file paths
                       # modules/bigbio/thermorawfileparser/tests/main.nf.test -> bigbio/thermorawfileparser
@@ -153,7 +148,6 @@ jobs:
                           echo "$MODULES"
                           echo "EOF"
                       } >> $GITHUB_OUTPUT
-                      echo "DEBUG: Detected modules: $MODULES"
                   fi
 
     test-modules:
