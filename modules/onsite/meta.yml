@@ -34,7 +34,6 @@ input:
           type: file
           description: Protein/peptide identifications file in idXML format
           pattern: "*.idXML"
-output:
     - meta:
           type: map
           description: |
