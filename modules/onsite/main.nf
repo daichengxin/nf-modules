@@ -4,7 +4,7 @@ process ONSITE {
     label 'onsite'
 
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'quay.io/biocontainers/pyonsite:0.0.1--pyhdfd78af_0' :
+        'https://depot.galaxyproject.org/singularity/pyonsite:0.0.1--pyhdfd78af_0' :
         'quay.io/biocontainers/pyonsite:0.0.1--pyhdfd78af_0' }"
 
     input:
