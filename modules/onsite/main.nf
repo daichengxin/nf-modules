@@ -18,24 +18,24 @@ process ONSITE {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.mzml_id}"
-    
+
     // Algorithm selection: ascore (default), phosphors, or lucxor
     def algorithm = params.onsite_algorithm ?: 'ascore'
-    
+
     // Common parameters for all algorithms
     def fragment_tolerance = params.onsite_fragment_tolerance ?: '0.05'
-    
+
     // Set default value for add_decoys (can be overridden by setting params.onsite_add_decoys = false)
     def onsite_add_decoys = params.containsKey('onsite_add_decoys') ? params.onsite_add_decoys : true
-    
+
     // Algorithm-specific parameters
     def fragment_unit = ''
     def add_decoys = onsite_add_decoys ? '--add-decoys' : ''
     def debug = params.onsite_debug ? '--debug' : ''
-    
+
     // Build algorithm-specific command
     def algorithm_cmd = ''
-    
+
     if (algorithm == 'ascore') {
         // AScore: uses -in, -id, -out, --fragment-mass-unit
         fragment_unit = params.onsite_fragment_unit ?: 'Da'
@@ -76,13 +76,13 @@ process ONSITE {
         def scoring_threshold = params.onsite_scoring_threshold ?: '0.0'
         def min_num_psms = params.onsite_min_num_psms_model ?: '50'
         def rt_tolerance = params.onsite_rt_tolerance ?: '0.01'
-        
+
         // Optional target modifications - default for LucXor includes decoy
         def target_mods = params.onsite_target_modifications ? "--target-modifications ${params.onsite_target_modifications}" : "--target-modifications 'Phospho(S),Phospho(T),Phospho(Y),PhosphoDecoy(A)'"
         def neutral_losses = params.onsite_neutral_losses ? "--neutral-losses ${params.onsite_neutral_losses}" : "--neutral-losses 'sty -H3PO4 -97.97690'"
         def decoy_mass = params.onsite_decoy_mass ? "--decoy-mass ${params.onsite_decoy_mass}" : "--decoy-mass 79.966331"
         def decoy_losses = params.onsite_decoy_neutral_losses ? "--decoy-neutral-losses ${params.onsite_decoy_neutral_losses}" : "--decoy-neutral-losses 'X -H3PO4 -97.97690'"
-        
+
         algorithm_cmd = """
         onsite lucxor \\
             -in ${mzml_file} \\
