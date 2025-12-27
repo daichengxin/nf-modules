@@ -1,234 +1,234 @@
 name: CI
 
 on:
-    push:
-        branches:
-            - main
-            - dev
-        paths-ignore:
-            - "**/meta.yml"
-    pull_request:
-        branches:
-            - main
-        paths-ignore:
-            - "**/meta.yml"
-    workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev
+    paths-ignore:
+      - "**/meta.yml"
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "**/meta.yml"
+  workflow_dispatch:
 
 # Cancel if a newer run is started
 concurrency:
-    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-    cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    NXF_ANSI_LOG: false
-    # renovate: datasource=github-releases depName=nextflow/nextflow versioning=semver
-    NXF_VER: "25.04.8"
-    # renovate: datasource=github-releases depName=askimed/nf-test versioning=semver
-    NFT_VER: "0.9.3"
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  NXF_ANSI_LOG: false
+  # renovate: datasource=github-releases depName=nextflow/nextflow versioning=semver
+  NXF_VER: "25.04.8"
+  # renovate: datasource=github-releases depName=askimed/nf-test versioning=semver
+  NFT_VER: "0.9.3"
 
 jobs:
-    prettier:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Check out code
-              uses: actions/checkout@v4
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
 
-            - name: Setup Node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: "20"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
-            - name: Install Prettier
-              run: npm install -g prettier
+      - name: Install Prettier
+        run: npm install -g prettier
 
-            - name: Run Prettier check
-              run: prettier --check .
+      - name: Run Prettier check
+        run: prettier --check .
 
-    editorconfig:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Check out code
-              uses: actions/checkout@v4
+  editorconfig:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
 
-            - name: Setup Python
-              uses: actions/setup-python@v5
-              with:
-                  python-version: "3.11"
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-            - name: Install editorconfig-checker
-              run: pip install editorconfig-checker
+      - name: Install editorconfig-checker
+        run: pip install editorconfig-checker
 
-            - name: Run editorconfig-checker
-              run: ec
+      - name: Run editorconfig-checker
+        run: ec
 
-    detect-changed-modules:
-        name: Detect changed modules
-        runs-on: ubuntu-latest
-        outputs:
-            modules: ${{ steps.components.outputs.modules }}
-            test_files: ${{ steps.list.outputs.test_files }}
-        steps:
-            - name: Check out code
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+  detect-changed-modules:
+    name: Detect changed modules
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.components.outputs.modules }}
+      test_files: ${{ steps.list.outputs.test_files }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            - name: Detect changed test files
-              id: list
-              run: |
-                  # Get base commit for comparison
-                  if [ "${{ github.event_name }}" == "pull_request" ]; then
-                      BASE_SHA="${{ github.event.pull_request.base.sha }}"
-                  else
-                      BASE_SHA="HEAD~1"
-                  fi
+      - name: Detect changed test files
+        id: list
+        run: |
+          # Get base commit for comparison
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+              BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          else
+              BASE_SHA="HEAD~1"
+          fi
 
-                  echo "Comparing against: $BASE_SHA"
+          echo "Comparing against: $BASE_SHA"
 
-                  # Get changed files
-                  CHANGED_FILES=$(git diff --name-only $BASE_SHA...HEAD || git diff --name-only HEAD~1 HEAD)
+          # Get changed files
+          CHANGED_FILES=$(git diff --name-only $BASE_SHA...HEAD || git diff --name-only HEAD~1 HEAD)
 
-                  echo "Changed files:"
-                  echo "$CHANGED_FILES"
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
 
-                  # Extract test files for changed modules
-                  TEST_FILES=()
+          # Extract test files for changed modules
+          TEST_FILES=()
 
-                  while IFS= read -r file; do
-                      # Check if file is in modules directory
-                      if [[ "$file" =~ ^modules/([^/]+)/([^/]+)/ ]]; then
-                          org="${BASH_REMATCH[1]}"
-                          module="${BASH_REMATCH[2]}"
-                          test_file="modules/${org}/${module}/tests/main.nf.test"
+          while IFS= read -r file; do
+              # Check if file is in modules directory
+              if [[ "$file" =~ ^modules/([^/]+)/([^/]+)/ ]]; then
+                  org="${BASH_REMATCH[1]}"
+                  module="${BASH_REMATCH[2]}"
+                  test_file="modules/${org}/${module}/tests/main.nf.test"
 
-                          # Check if test exists
-                          if [ -f "$test_file" ]; then
-                              if [[ ! " ${TEST_FILES[@]} " =~ " ${test_file} " ]]; then
-                                  TEST_FILES+=("$test_file")
-                              fi
-                          fi
+                  # Check if test exists
+                  if [ -f "$test_file" ]; then
+                      if [[ ! " ${TEST_FILES[@]} " =~ " ${test_file} " ]]; then
+                          TEST_FILES+=("$test_file")
                       fi
-
-                      # Also check if test files themselves changed
-                      if [[ "$file" =~ ^modules/([^/]+)/([^/]+)/tests/main\.nf\.test$ ]]; then
-                          if [[ ! " ${TEST_FILES[@]} " =~ " ${file} " ]]; then
-                              TEST_FILES+=("$file")
-                          fi
-                      fi
-                  done <<< "$CHANGED_FILES"
-
-                  # Convert to JSON array
-                  if [ ${#TEST_FILES[@]} -eq 0 ]; then
-                      echo 'test_files=[]' >> $GITHUB_OUTPUT
-                      echo "No changed modules with tests found."
-                  else
-                      TEST_FILES_JSON=$(printf '%s\n' "${TEST_FILES[@]}" | jq -R . | jq -s .)
-                      {
-                          echo "test_files<<EOF"
-                          echo "$TEST_FILES_JSON"
-                          echo "EOF"
-                      } >> $GITHUB_OUTPUT
-                      echo "Changed test files:"
-                      printf '%s\n' "${TEST_FILES[@]}"
                   fi
+              fi
 
-            - name: Extract module names
-              id: components
-              run: |
-                  TEST_FILES='${{ steps.list.outputs.test_files }}'
-                  if [ "$TEST_FILES" == "[]" ]; then
-                      echo 'modules=[]' >> $GITHUB_OUTPUT
-                  else
-                      # Extract module paths from test file paths
-                      # modules/bigbio/thermorawfileparser/tests/main.nf.test -> bigbio/thermorawfileparser
-                      MODULES=$(echo "$TEST_FILES" | jq -c 'map(gsub("modules/"; "") | gsub("/tests/main.nf.test"; ""))')
-                      {
-                          echo "modules<<EOF"
-                          echo "$MODULES"
-                          echo "EOF"
-                      } >> $GITHUB_OUTPUT
+              # Also check if test files themselves changed
+              if [[ "$file" =~ ^modules/([^/]+)/([^/]+)/tests/main\.nf\.test$ ]]; then
+                  if [[ ! " ${TEST_FILES[@]} " =~ " ${file} " ]]; then
+                      TEST_FILES+=("$file")
                   fi
+              fi
+          done <<< "$CHANGED_FILES"
 
-    test-modules:
-        name: "${{ matrix.profile }} | ${{ matrix.module }}"
-        needs: [detect-changed-modules]
-        if: needs.detect-changed-modules.outputs.modules != '[]'
-        runs-on: ubuntu-latest
-        strategy:
-            fail-fast: false
-            matrix:
-                module: ${{ fromJson(needs.detect-changed-modules.outputs.modules) }}
-                profile: [docker]
-        steps:
-            - name: Check out code
-              uses: actions/checkout@v4
+          # Convert to JSON array
+          if [ ${#TEST_FILES[@]} -eq 0 ]; then
+              echo 'test_files=[]' >> $GITHUB_OUTPUT
+              echo "No changed modules with tests found."
+          else
+              TEST_FILES_JSON=$(printf '%s\n' "${TEST_FILES[@]}" | jq -R . | jq -s .)
+              {
+                  echo "test_files<<EOF"
+                  echo "$TEST_FILES_JSON"
+                  echo "EOF"
+              } >> $GITHUB_OUTPUT
+              echo "Changed test files:"
+              printf '%s\n' "${TEST_FILES[@]}"
+          fi
 
-            - name: Install Nextflow
-              uses: nf-core/setup-nextflow@v1
-              with:
-                  version: ${{ env.NXF_VER }}
+      - name: Extract module names
+        id: components
+        run: |
+          TEST_FILES='${{ steps.list.outputs.test_files }}'
+          if [ "$TEST_FILES" == "[]" ]; then
+              echo 'modules=[]' >> $GITHUB_OUTPUT
+          else
+              # Extract module paths from test file paths
+              # modules/bigbio/thermorawfileparser/tests/main.nf.test -> bigbio/thermorawfileparser
+              MODULES=$(echo "$TEST_FILES" | jq -c 'map(gsub("modules/"; "") | gsub("/tests/main.nf.test"; ""))')
+              {
+                  echo "modules<<EOF"
+                  echo "$MODULES"
+                  echo "EOF"
+              } >> $GITHUB_OUTPUT
+          fi
 
-            - name: Install nf-test
-              run: |
-                  wget -qO- https://code.askimed.com/install/nf-test | bash -s ${{ env.NFT_VER }}
-                  sudo mv nf-test /usr/local/bin/
+  test-modules:
+    name: "${{ matrix.profile }} | ${{ matrix.module }}"
+    needs: [detect-changed-modules]
+    if: needs.detect-changed-modules.outputs.modules != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJson(needs.detect-changed-modules.outputs.modules) }}
+        profile: [docker]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
 
-            - name: Run nf-test for ${{ matrix.module }}
-              env:
-                  PROFILE: ${{ matrix.profile }}
-              run: |
-                  MODULE_PATH="${{ matrix.module }}"
-                  TEST_FILE="modules/${MODULE_PATH}/tests/main.nf.test"
+      - name: Install Nextflow
+        uses: nf-core/setup-nextflow@v1
+        with:
+          version: ${{ env.NXF_VER }}
 
-                  echo "Testing module: ${MODULE_PATH}"
-                  echo "Test file: ${TEST_FILE}"
-                  echo "Profile: ${{ matrix.profile }}"
+      - name: Install nf-test
+        run: |
+          wget -qO- https://code.askimed.com/install/nf-test | bash -s ${{ env.NFT_VER }}
+          sudo mv nf-test /usr/local/bin/
 
-                  if [ ! -f "${TEST_FILE}" ]; then
-                      echo "Error: Test file ${TEST_FILE} not found"
-                      exit 1
-                  fi
+      - name: Run nf-test for ${{ matrix.module }}
+        env:
+          PROFILE: ${{ matrix.profile }}
+        run: |
+          MODULE_PATH="${{ matrix.module }}"
+          TEST_FILE="modules/${MODULE_PATH}/tests/main.nf.test"
 
-                  # Create test results directory
-                  mkdir -p test_results/${MODULE_PATH}
+          echo "Testing module: ${MODULE_PATH}"
+          echo "Test file: ${TEST_FILE}"
+          echo "Profile: ${{ matrix.profile }}"
 
-                  # Run nf-test
-                  # Docker is configured in tests/config/nextflow.config
-                  nf-test test \
-                      --tap test_results/${MODULE_PATH}/test.tap \
-                      ${TEST_FILE}
+          if [ ! -f "${TEST_FILE}" ]; then
+              echo "Error: Test file ${TEST_FILE} not found"
+              exit 1
+          fi
 
-            - name: Sanitize module name for artifact
-              if: always()
-              id: sanitize
-              run: |
-                  # Replace / with - to make valid artifact name
-                  SANITIZED=$(echo "${{ matrix.module }}" | tr '/' '-')
-                  echo "name=test-results-${{ matrix.profile }}-${SANITIZED}" >> $GITHUB_OUTPUT
+          # Create test results directory
+          mkdir -p test_results/${MODULE_PATH}
 
-            - name: Upload test results
-              if: always()
-              uses: actions/upload-artifact@v4
-              with:
-                  name: ${{ steps.sanitize.outputs.name }}
-                  path: test_results/${{ matrix.module }}/
-                  retention-days: 7
+          # Run nf-test
+          # Docker is configured in tests/config/nextflow.config
+          nf-test test \
+              --tap test_results/${MODULE_PATH}/test.tap \
+              ${TEST_FILE}
 
-    confirm-pass-tests:
-        name: Check test results
-        runs-on: ubuntu-latest
-        needs: [test-modules]
+      - name: Sanitize module name for artifact
         if: always()
-        steps:
-            - name: One or more tests failed
-              if: ${{ contains(needs.*.result, 'failure') }}
-              run: exit 1
+        id: sanitize
+        run: |
+          # Replace / with - to make valid artifact name
+          SANITIZED=$(echo "${{ matrix.module }}" | tr '/' '-')
+          echo "name=test-results-${{ matrix.profile }}-${SANITIZED}" >> $GITHUB_OUTPUT
 
-            - name: One or more tests cancelled
-              if: ${{ contains(needs.*.result, 'cancelled') }}
-              run: exit 1
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.sanitize.outputs.name }}
+          path: test_results/${{ matrix.module }}/
+          retention-days: 7
 
-            - name: All tests ok
-              if: ${{ !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
-              run: exit 0
+  confirm-pass-tests:
+    name: Check test results
+    runs-on: ubuntu-latest
+    needs: [test-modules]
+    if: always()
+    steps:
+      - name: One or more tests failed
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: exit 1
+
+      - name: One or more tests cancelled
+        if: ${{ contains(needs.*.result, 'cancelled') }}
+        run: exit 1
+
+      - name: All tests ok
+        if: ${{ !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+        run: exit 0
