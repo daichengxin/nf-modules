@@ -43,7 +43,7 @@ process ONSITE {
     if (algorithm == 'ascore') {
         // AScore: uses -in, -id, -out, --fragment-mass-unit
         fragment_unit = params.onsite_fragment_unit ?: 'Da'
-        def optional_flags = [add_decoys, compute_all_scores, debug].findAll { it }.join(' \\\n            ')
+        def optional_flags = [add_decoys, compute_all_scores, debug].findAll {it -> it }.join(' \\\n            ')
         algorithm_cmd = """
         onsite ascore \\
             -in ${mzml_file} \\
@@ -55,7 +55,7 @@ process ONSITE {
     } else if (algorithm == 'phosphors') {
         // PhosphoRS: uses -in, -id, -out, --fragment-mass-unit
         fragment_unit = params.onsite_fragment_unit ?: 'Da'
-        def optional_flags = [add_decoys, compute_all_scores, debug].findAll { it }.join(' \\\n            ')
+        def optional_flags = [add_decoys, compute_all_scores, debug].findAll {it -> it }.join(' \\\n            ')
         algorithm_cmd = """
         onsite phosphors \\
             -in ${mzml_file} \\
@@ -85,7 +85,7 @@ process ONSITE {
         def decoy_mass = params.onsite_decoy_mass ? "--decoy-mass ${params.onsite_decoy_mass}" : "--decoy-mass 79.966331"
         def decoy_losses = params.onsite_decoy_neutral_losses ? "--decoy-neutral-losses ${params.onsite_decoy_neutral_losses}" : "--decoy-neutral-losses 'X -H3PO4 -97.97690'"
 
-        def optional_flags = [disable_split_by_charge, compute_all_scores, debug].findAll { it }.join(' \\\n            ')
+        def optional_flags = [disable_split_by_charge, compute_all_scores, debug].findAll {it -> it }.join(' \\\n            ')
         algorithm_cmd = """
         onsite lucxor \\
             -in ${mzml_file} \\
