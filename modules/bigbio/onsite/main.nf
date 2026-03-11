@@ -1,5 +1,5 @@
 process ONSITE {
-    tag "$meta.mzml_id"
+    tag "$meta.id"
     label 'process_medium'
     label 'onsite'
 
@@ -11,7 +11,7 @@ process ONSITE {
     tuple val(meta), path(mzml_file), path(id_file)
 
     output:
-    tuple val(meta), path("${id_file.baseName}_*.idXML"), emit: ptm_in_id_onsite
+    tuple val(meta), path("${task.ext.prefix ?: meta.id}_*.idXML"), emit: ptm_in_id_onsite
     path "versions.yml", emit: versions
     path "*.log", emit: log
 
@@ -20,7 +20,7 @@ process ONSITE {
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.mzml_id}"
+    def prefix = task.ext.prefix ?: "${meta.id}"
 
     // Algorithm selection: lucxor (default), ascore, or phosphors
     def algorithm = params.onsite_algorithm ?: 'lucxor'
@@ -48,7 +48,7 @@ process ONSITE {
         onsite ascore \\
             -in ${mzml_file} \\
             -id ${id_file} \\
-            -out ${id_file.baseName}_ascore.idXML \\
+            -out ${prefix}_ascore.idXML \\
             --fragment-mass-tolerance ${fragment_tolerance} \\
             --fragment-mass-unit ${fragment_unit}${optional_flags ? ' \\\n            ' + optional_flags : ''}
         """
@@ -60,7 +60,7 @@ process ONSITE {
         onsite phosphors \\
             -in ${mzml_file} \\
             -id ${id_file} \\
-            -out ${id_file.baseName}_phosphors.idXML \\
+            -out ${prefix}_phosphors.idXML \\
             --fragment-mass-tolerance ${fragment_tolerance} \\
             --fragment-mass-unit ${fragment_unit}${optional_flags ? ' \\\n            ' + optional_flags : ''}
             ${args}
@@ -90,7 +90,7 @@ process ONSITE {
         onsite lucxor \\
             -in ${mzml_file} \\
             -id ${id_file} \\
-            -out ${id_file.baseName}_lucxor.idXML \\
+            -out ${prefix}_lucxor.idXML \\
             --fragment-method ${fragment_method} \\
             --fragment-mass-tolerance ${fragment_tolerance} \\
             --fragment-error-units ${fragment_unit} \\
@@ -112,11 +112,11 @@ process ONSITE {
     }
 
     """
-    ${algorithm_cmd.trim()} 2>&1 | tee ${id_file.baseName}_${algorithm}.log
+    ${algorithm_cmd.trim()} 2>&1 | tee ${prefix}_${algorithm}.log
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        onsite: \$(onsite --version 2>&1 | grep -oP 'version \\K[0-9.]+' || echo "unknown")
+        onsite: \$(onsite --version 2>&1 | grep -oE 'version \\K[0-9.]+' || echo "unknown")
         algorithm: ${algorithm}
     END_VERSIONS
     """
