@@ -5,7 +5,7 @@ process ONSITE {
 
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/pyonsite:0.0.2--pyhdfd78af_0' :
-        'quay.io/biocontainers/pyonsite:0.0.2--pyhdfd78af_0' }"
+        'biocontainers/pyonsite:0.0.2--pyhdfd78af_0' }"
 
     input:
     tuple val(meta), path(mzml_file), path(id_file)
@@ -14,6 +14,9 @@ process ONSITE {
     tuple val(meta), path("${id_file.baseName}_*.idXML"), emit: ptm_in_id_onsite
     path "versions.yml", emit: versions
     path "*.log", emit: log
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
     def args = task.ext.args ?: ''
@@ -60,6 +63,7 @@ process ONSITE {
             -out ${id_file.baseName}_phosphors.idXML \\
             --fragment-mass-tolerance ${fragment_tolerance} \\
             --fragment-mass-unit ${fragment_unit}${optional_flags ? ' \\\n            ' + optional_flags : ''}
+            ${args}
         """
     } else if (algorithm == 'lucxor') {
         // LucXor: uses -in, -id, -out, --fragment-error-units (note: error-units not mass-unit)
