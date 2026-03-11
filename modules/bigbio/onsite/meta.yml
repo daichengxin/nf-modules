@@ -44,10 +44,11 @@ output:
           type: map
           description: |
             Groovy Map containing sample information
-      - ${id_file.baseName}_*.idXML:
+      - ${prefix}_*.idXML:
           type: file
-          description: idXML file containing PTM localization results from onsite
-          pattern: "${id_file.baseName}_*.idXML"
+          description: Output idXML file containing PTM localization results from
+            onsite
+          pattern: "${prefix}_*.idXML"
           ontologies: []
   log:
     - "*.log":

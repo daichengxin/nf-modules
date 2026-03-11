@@ -11,7 +11,7 @@ process ONSITE {
     tuple val(meta), path(mzml_file), path(id_file)
 
     output:
-    tuple val(meta), path("${task.ext.prefix ?: meta.id}_*.idXML"), emit: ptm_in_id_onsite
+    tuple val(meta), path("${prefix}_*.idXML"), emit: ptm_in_id_onsite
     path "versions.yml", emit: versions
     path "*.log", emit: log
 
@@ -20,7 +20,7 @@ process ONSITE {
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    prefix = task.ext.prefix ?: "${meta.id}"
 
     // Algorithm selection: lucxor (default), ascore, or phosphors
     def algorithm = params.onsite_algorithm ?: 'lucxor'
