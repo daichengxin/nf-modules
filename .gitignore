@@ -198,6 +198,8 @@ dag.svg
 testing/
 testing*/
 *.pyc
+.nf-test
+*nf.test.snap
 
 # Codacy
 .codacy

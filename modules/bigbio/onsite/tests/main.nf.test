@@ -5,6 +5,7 @@ nextflow_process {
     process "ONSITE"
     tag "modules"
     tag "modules_onsite"
+    tag "modules_bigbio"
     tag "onsite"
 
     test("Should run AScore algorithm") {
