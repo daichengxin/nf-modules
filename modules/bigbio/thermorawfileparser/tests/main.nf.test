@@ -36,7 +36,7 @@ nextflow_process {
             process {
                 """
                 input[0] = [
-                    [ id: 'test', mzml_id: 'test_sample' ],
+                    [ id: 'test_sample', mzml_id: 'test_sample' ],
                     file(params.test_data['proteomics']['msspectra']['ups1_50amol_r3'], checkIfExists: false)
                 ]
                 """
