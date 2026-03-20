@@ -2,10 +2,14 @@
     "versions_stub": {
         "content": [
             [
-                "versions.yml:md5,dc9625538c025d615109ef8cac3a86ab"
+                [
+                    "THERMORAWFILEPARSER",
+                    "thermorawfileparser",
+                    "1.4.5"
+                ]
             ]
         ],
-        "timestamp": "2026-03-13T14:32:25.161481",
+        "timestamp": "2026-03-20T12:41:22.8183",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.10.4"
@@ -14,10 +18,14 @@
     "versions": {
         "content": [
             [
-                "versions.yml:md5,dc9625538c025d615109ef8cac3a86ab"
+                [
+                    "THERMORAWFILEPARSER",
+                    "thermorawfileparser",
+                    "1.4.5"
+                ]
             ]
         ],
-        "timestamp": "2026-03-13T14:31:40.55121",
+        "timestamp": "2026-03-20T12:36:30.88531",
         "meta": {
             "nf-test": "0.9.4",
             "nextflow": "25.10.4"
