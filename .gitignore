@@ -199,10 +199,12 @@ testing/
 testing*/
 *.pyc
 .nf-test
-*nf.test.snap
+nf.test.snap
 
 # Codacy
 .codacy
 
 # IDEA
 .idea/
+
+.nf-test*

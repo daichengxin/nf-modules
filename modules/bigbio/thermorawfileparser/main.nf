@@ -5,16 +5,16 @@ process THERMORAWFILEPARSER {
     label 'error_retry'
 
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'https://depot.galaxyproject.org/singularity/thermorawfileparser:1.4.5--h05cac1d_1'
-        : 'biocontainers/thermorawfileparser:1.4.5--h05cac1d_1'}"
+    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/thermorawfileparser:2.0.0.dev--h9ee0642_0' :
+        'biocontainers/thermorawfileparser:2.0.0.dev--h9ee0642_0' }"
 
     input:
     tuple val(meta), path(raw)
 
     output:
     tuple val(meta), path("*.{mzML,mzML.gz,mgf,mgf.gz,parquet,parquet.gz}"), emit: spectra
-    tuple val("${task.process}"), val('thermorawfileparser'), eval("ThermoRawFileParser.sh --version"), emit: versions_thermorawfileparser, topic: versions
+    tuple val("${task.process}"), val('thermorawfileparser'), eval("thermorawfileparser --version"), emit: versions_thermorawfileparser, topic: versions
     path "*.log", emit: log
 
     when:
@@ -40,7 +40,7 @@ process THERMORAWFILEPARSER {
     suffix = args.contains("--gzip") ? "${suffix}.gz" : "${suffix}"
 
     """
-    ThermoRawFileParser.sh \\
+    thermorawfileparser \\
         -i='${raw}' \\
         ${formatArg} ${args} \\
         -o=./ 2>&1 | tee '${prefix}_conversion.log'
@@ -66,7 +66,7 @@ process THERMORAWFILEPARSER {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        ThermoRawFileParser: \$(ThermoRawFileParser.sh --version)
+        ThermoRawFileParser: \$(thermorawfileparser --version)
     END_VERSIONS
     """
 }
