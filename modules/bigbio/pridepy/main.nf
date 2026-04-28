@@ -22,7 +22,10 @@ process PRIDEPY_DOWNLOAD {
     def args = task.ext.args ?: ''
     """
     mkdir -p output
-    pridepy ${args}
+    (
+        cd output
+        pridepy ${args}
+    )
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -33,7 +36,7 @@ process PRIDEPY_DOWNLOAD {
     stub:
     """
     mkdir -p output
-    touch output/${meta.id}.placeholder
+    touch "output/${meta.id}.placeholder"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
