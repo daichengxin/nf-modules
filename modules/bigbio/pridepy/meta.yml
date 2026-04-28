@@ -17,22 +17,25 @@ tools:
       homepage: https://github.com/PRIDE-Archive/pridepy
       documentation: https://github.com/PRIDE-Archive/pridepy
       tool_dev_url: https://github.com/PRIDE-Archive/pridepy
-      doi: ""
       licence:
         - "Apache-2.0"
       identifier: ""
 input:
-  - - meta:
-        type: map
-        description: |
-          Groovy Map containing task information.
-          e.g. `[ id: 'PXD001819' ]`
+  - meta:
+      type: map
+      description: |
+        Groovy Map containing task information.
+        e.g. `[ id: 'PXD001819' ]`
 output:
   download_dir:
-    - "output/":
-        type: directory
-        description: Directory containing downloaded files (for download sub-commands)
-        pattern: "output/"
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing task information forwarded from input.
+      - "output/":
+          type: directory
+          description: Directory containing downloaded files (for download sub-commands)
+          pattern: "output/"
   versions:
     - versions.yml:
         type: file

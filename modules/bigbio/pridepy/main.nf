@@ -12,8 +12,8 @@ process PRIDEPY_DOWNLOAD {
     val(meta)
 
     output:
-    path "output/",      emit: download_dir, optional: true
-    path "versions.yml", emit: versions
+    tuple val(meta), path("output/"), emit: download_dir
+    path "versions.yml",              emit: versions
 
     when:
     task.ext.when == null || task.ext.when
