@@ -26,7 +26,7 @@ process PRIDEPY_DOWNLOAD {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        pridepy: \$(pip show pridepy 2>/dev/null | grep Version | cut -d' ' -f2)
+        pridepy: \$(python -c "from importlib.metadata import version; print(version('pridepy'))" || echo "unknown")
     END_VERSIONS
     """
 
