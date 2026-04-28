@@ -1,0 +1,28 @@
+nextflow_process {
+
+    name "Test Process PRIDEPY_DOWNLOAD"
+    script "../main.nf"
+    process "PRIDEPY_DOWNLOAD"
+    tag "modules"
+    tag "modules_bigbio"
+    tag "modules_pridepy"
+    tag "pridepy"
+
+    test("Should run stub mode") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [ id: 'PXD001819' ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+            assert snapshot(process.out.versions).match("versions_stub")
+        }
+    }
+}
