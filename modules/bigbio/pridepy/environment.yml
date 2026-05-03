@@ -3,4 +3,4 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - bioconda::pridepy=0.0.14
+  - bioconda::pridepy=0.0.15
