@@ -35,10 +35,10 @@ nextflow_process {
 
             process {
                 """
-                input[0] = file("${resultsDir}/PXD063291/DiaNN/report.tsv")
-                input[1] = file("${resultsDir}/PXD063291/DiaNN/report.pg_matrix.tsv")
-                input[2] = file("${resultsDir}/PXD063291/PXD063291.sdrf.tsv")
-                input[3] = file("${resultsDir}/PXD063291/DiaNN/report.log.txt")
+                input[0] = file('${resultsDir.getAbsolutePath()}/PXD063291/DiaNN/report.tsv')
+                input[1] = file('${resultsDir.getAbsolutePath()}/PXD063291/DiaNN/report.pg_matrix.tsv')
+                input[2] = file('${resultsDir.getAbsolutePath()}/PXD063291/PXD063291.sdrf.tsv')
+                input[3] = file('${resultsDir.getAbsolutePath()}/PXD063291/DiaNN/report.log.txt')
                 input[4] = "PXD063291"
                 """
             }
