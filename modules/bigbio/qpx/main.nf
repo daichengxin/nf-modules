@@ -3,7 +3,10 @@ process QPX_EXPORT {
     label 'process_medium'
     label 'error_retry'
 
-    container "ghcr.io/bigbio/qpx:${params.qpx_version}"
+    conda "${moduleDir}/environment.yml"
+    container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/qpx:'
+        : 'biocontainers/qpx:'}"
 
     input:
     path(diann_report)
@@ -40,7 +43,7 @@ process QPX_EXPORT {
         --qvalue-threshold ${qvalue} \\
         --standardized-intensities \\
         --duckdb-threads ${task.cpus} \\
-        --duckdb-max-memory ${task.memory.toGiga()}GB \\
+        --duckdb-max-memory ${task.memory ? task.memory.toGiga() : 4}GB \\
         --compression zstd \\
         ${args}
 
