@@ -5,8 +5,8 @@ process QPX_EXPORT {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'https://depot.galaxyproject.org/singularity/qpx:1.0.2--pyhdfd78af_0'
-        : 'biocontainers/qpx:1.0.2--pyhdfd78af_0'}"
+        ? 'https://depot.galaxyproject.org/singularity/qpx:1.0.2--pyhdfd78af_1'
+        : 'biocontainers/qpx:1.0.2--pyhdfd78af_1'}"
 
     input:
     path(diann_report)
