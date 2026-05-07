@@ -3,4 +3,5 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - bioconda::pridepy=0.0.15
+  - pip:
+      - qpx

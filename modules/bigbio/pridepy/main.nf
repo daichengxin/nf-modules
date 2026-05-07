@@ -5,8 +5,8 @@ process PRIDEPY_DOWNLOAD {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container
-        ? 'https://depot.galaxyproject.org/singularity/pridepy:0.0.14--pyhdfd78af_0'
-        : 'biocontainers/pridepy:0.0.14--pyhdfd78af_0'}"
+        ? 'https://depot.galaxyproject.org/singularity/pridepy:0.0.15--pyhdfd78af_0'
+        : 'biocontainers/pridepy:0.0.15--pyhdfd78af_0'}"
 
     input:
     val(meta)
@@ -39,7 +39,7 @@ process PRIDEPY_DOWNLOAD {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        pridepy: 0.0.14
+        pridepy: 0.0.15
     END_VERSIONS
     """
 }
