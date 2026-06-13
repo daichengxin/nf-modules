@@ -182,6 +182,7 @@ jobs:
       - name: Run nf-test for ${{ matrix.module }}
         env:
           PROFILE: ${{ matrix.profile }}
+          ONSITE_IDPARQUET_PATH: ${{ github.workspace }}/tests/data/onsite/Phospho_redissolve_final_01_clean_perc.idparquet
         run: |
           MODULE_PATH="${{ matrix.module }}"
           TEST_FILE="modules/${MODULE_PATH}/tests/main.nf.test"
