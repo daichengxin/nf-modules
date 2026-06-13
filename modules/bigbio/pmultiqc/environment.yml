@@ -1,7 +1,7 @@
-name: example
+name: pmultiqc
 channels:
   - conda-forge
   - bioconda
   - defaults
 dependencies:
-  - bioconda::your-tool=1.0.0
+  - bioconda::pmultiqc=0.0.39

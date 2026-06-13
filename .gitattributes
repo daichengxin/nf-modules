@@ -1,2 +1,10 @@
 *.config linguist-language=nextflow
 *.nf linguist-language=nextflow
+
+# Normalize line endings and enforce LF for text files
+* text=auto
+*.nf text eol=lf
+*.config text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.test text eol=lf

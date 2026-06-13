@@ -109,13 +109,6 @@ jobs:
                       fi
                   fi
               fi
-
-              # Also check if test files themselves changed
-              if [[ "$file" =~ ^modules/([^/]+)/([^/]+)/tests/main\.nf\.test$ ]]; then
-                  if [[ ! " ${TEST_FILES[@]} " =~ " ${file} " ]]; then
-                      TEST_FILES+=("$file")
-                  fi
-              fi
           done <<< "$CHANGED_FILES"
 
           # Convert to JSON array
@@ -190,13 +183,9 @@ jobs:
               exit 1
           fi
 
-          # Create test results directory
-          mkdir -p test_results/${MODULE_PATH}
-
-          # Run nf-test
-          # Docker is configured in tests/config/nextflow.config
+          # Run nf-test with profile (without TAP output to avoid path issues)
           nf-test test \
-              --tap test_results/${MODULE_PATH}/test.tap \
+              --profile ${{ matrix.profile }} \
               ${TEST_FILE}
 
       - name: Sanitize module name for artifact

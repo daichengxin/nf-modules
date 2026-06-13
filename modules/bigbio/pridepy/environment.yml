@@ -3,4 +3,4 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - bioconda::thermorawfileparser=2.0.0.dev
+  - bioconda::pridepy=0.0.15
