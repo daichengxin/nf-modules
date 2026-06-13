@@ -35,7 +35,7 @@ input:
         ontologies: []
     - id_file:
         type: file
-        description: Protein/peptide identifications file in idXML format
+        description: Protein/peptide identifications file in idparquet format
         pattern: "*.idparquet"
         ontologies: []
 output:

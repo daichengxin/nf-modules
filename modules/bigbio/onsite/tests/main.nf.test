@@ -13,11 +13,12 @@ nextflow_process {
         when {
             process {
                 """
-                input[0] = [
-                    [ id: 'test', mzml_id: 'test_sample' ],
-                    file(params.test_data['proteomics']['onsite']['mzml'], checkIfExists: true),
-                    file(params.test_data['proteomics']['onsite']['idparquet'], checkIfExists: true)
-                ]
+                input[0] = channel.from([
+                    [
+                        [ id: 'test', mzml_id: 'test_sample' ],
+                        file(params.test_data['proteomics']['onsite']['mzml'], checkIfExists: true)
+                    ]
+                ]).combine(channel.fromPath(params.test_data['proteomics']['onsite']['idparquet']))
                 """
             }
             params {
