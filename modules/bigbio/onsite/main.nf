@@ -36,11 +36,11 @@ process ONSITE {
     def fragment_unit = ''
     def add_decoys = onsite_add_decoys ? '--add-decoys' : ''
     def debug = params.onsite_debug ? '--debug' : ''
-    def suffix = id_file.contains(".idparquet")
+    def suffix = id_file.name.endsWith(".idparquet")
         ? "idparquet"
-        : id_file.contains(".idXML")
+        : id_file.name.endsWith(".idXML")
             ? "idXML"
-            : id_file.contains(".mzIdentML")
+            : id_file.name.endsWith(".mzIdentML")
                 ? "mzIdentML"
 
     // Build algorithm-specific command
