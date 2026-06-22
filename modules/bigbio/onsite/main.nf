@@ -41,7 +41,7 @@ process ONSITE {
         : id_file.name.endsWith(".idXML")
             ? "idXML"
             : id_file.name.endsWith(".mzIdentML")
-                ? "mzIdentML"
+                ? "mzIdentML" : "idparquet"
 
     // Build algorithm-specific command
     def algorithm_cmd = ''
